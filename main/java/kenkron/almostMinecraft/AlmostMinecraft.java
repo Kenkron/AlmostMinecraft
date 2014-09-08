@@ -1,11 +1,18 @@
 package kenkron.almostMinecraft;
 
+import java.util.ArrayList;
+
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockPistonBase;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.CraftingManager;
+import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.item.crafting.ShapedRecipes;
+import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraftforge.common.MinecraftForge;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -53,7 +60,7 @@ public class AlmostMinecraft {
         //GameRegistry.addRecipe(dropperStack, "xxx", "x x","xrx",'x',Block.blockRegistry.getObject("cobblestone"),'r',Item.itemRegistry.getObject("redstone"));
         
         ////////////////Piston Changes:////////////////
-		System.out.println("Initializing AlmostPiston1");
+		System.out.println("Initializing AlmostPiston");
         
         //only sticky pistons can build block breakers right now
         
@@ -63,17 +70,43 @@ public class AlmostMinecraft {
         
         AlmostPiston almostStickyPiston = new AlmostPiston(true);
         almostStickyPiston.setBlockName("almostPistonStickyBase");
-        GameRegistry.registerBlock(almostStickyPiston, "almost_sticky_piston");
+        GameRegistry.registerBlock(almostStickyPiston, "sticky_piston");
         ItemStack pistonStack=new ItemStack(almostStickyPiston);
+        ItemStack oldStickyPiston = new ItemStack((Block)Block.blockRegistry.getObject("sticky_piston"));
+        RemoveRecipe(oldStickyPiston);
+        //a recipe to convert vanilla pistons to the new pistons
+        GameRegistry.addShapelessRecipe(pistonStack, oldStickyPiston);
+        //replace the vanilla recipe so that it creates an almost-piston instead of a sticky piston.
         GameRegistry.addShapelessRecipe(pistonStack, Block.blockRegistry.getObject("piston"), Item.itemRegistry.getObject("slime_ball"));
         LanguageRegistry.addName(almostStickyPiston, "Almost Sticky Piston");
-//        GameRegistry.addRecipe(pistonStack, "www","xix","xrx",
-//        		'w',Block.blockRegistry.getObject("planks"),
-//        		'x',Block.blockRegistry.getObject("cobblestone"),
-//        		'i',Item.itemRegistry.getObject("iron_ingot"),
-//        		'r',Item.itemRegistry.getObject("redstone"));
         ////////////////Breeding Changes:////////////////
         
     }
 	
+	private static void RemoveRecipe(ItemStack resultItem)
+	{
+	ItemStack recipeResult = null;
+	ArrayList recipes = (ArrayList) CraftingManager.getInstance().getRecipeList();
+	for (int scan = 0; scan < recipes.size(); scan++)
+	{
+		 IRecipe tmpRecipe = (IRecipe) recipes.get(scan);
+		 String tmpName = "none";
+		 if (tmpRecipe!=null && tmpRecipe.getRecipeOutput()!=null && tmpRecipe.getRecipeOutput().getDisplayName()!=null){
+			 tmpName=(tmpRecipe.getRecipeOutput().getDisplayName());
+		 }
+		 System.out.println(tmpName);
+		 if (tmpRecipe !=null)
+		 {
+			 recipeResult = tmpRecipe.getRecipeOutput();
+		 }
+		 if (resultItem!=null&&recipeResult!=null){
+			System.out.println("match "+resultItem.getDisplayName()+", "+recipeResult.getDisplayName());
+			 if(resultItem.getDisplayName().equals(recipeResult.getDisplayName()))
+			 {
+				 System.out.println("AlmostMinecraft Removed Recipe: " + recipes.get(scan) + " -> " + recipeResult);
+				 recipes.remove(scan);
+			 }
+		 }
+	}
+	}
 }
